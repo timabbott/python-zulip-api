@@ -14,6 +14,11 @@ IMPORTANT: Make sure the bot is subscribed to the relevant Zulip stream!!
 
 Specify your Zulip API credentials and server in a ~/.zuliprc file or using the options.
 
+NOTE: Currently, when you send a message from IRC for the first time, you will encounter a "Read time out" connection error. This is expected and currently we are fixing the bug. However, the subsequent messages will be relayed successfully, and so the bridge should work just fine.
+NOTE: If you encounter this error message
+`AttributeError: 'AioReactor' object has no attribute 'scheduler'`,
+simply restart the mirror until you don't encounter the error. This is a known bug.
+
 ## Example
 
 ```
