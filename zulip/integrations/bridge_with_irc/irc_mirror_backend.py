@@ -46,7 +46,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
             exit(1)
 
     def on_nicknameinuse(self, c: ServerConnection, e: Event) -> None:
-        c.nick(c.get_nickname().replace("_zulip", "__zulip"))
+        raise Exception("Nickname %s already in use." % (c.get_nickname(),))
 
     def on_welcome(self, c: ServerConnection, e: Event) -> None:
         if len(self.nickserv_password) > 0:
