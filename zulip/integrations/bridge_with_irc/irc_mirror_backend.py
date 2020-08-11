@@ -15,6 +15,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         self.zulip_client = zulip_client
         self.stream = stream
         self.topic = topic
+        self.nickname = nickname
         self.IRC_DOMAIN = server
         self.nickserv_password = nickserv_password
         # Make sure the bot is subscribed to the stream
@@ -84,7 +85,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c: ServerConnection, e: Event) -> None:
         content = e.arguments[0]
         sender = self.zulip_sender(e.source)
-        if sender.endswith("_zulip@" + self.IRC_DOMAIN):
+        if sender == (self.nickname + "@" + self.IRC_DOMAIN):
             return
 
         # Forward the PM to Zulip
@@ -98,7 +99,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, c: ServerConnection, e: Event) -> None:
         content = e.arguments[0]
         sender = self.zulip_sender(e.source)
-        if sender.endswith("_zulip@" + self.IRC_DOMAIN):
+        if sender == (self.nickname + "@" + self.IRC_DOMAIN):
             return
 
         # Forward the stream message to Zulip
