@@ -122,13 +122,23 @@ def main() -> None:
                            "    zulip-run-bot {bot_name} --provision")
             print(dep_err_msg.format(bot_name=bot_name, deps_list=deps_list))
             sys.exit(1)
+        bot_source = "source"
     else:
         lib_module = finder.import_module_by_name(args.bot)
         if lib_module:
             bot_name = lib_module.__name__
+            bot_source = "named module"
             if args.provision:
                 print("ERROR: Could not load bot's module for '{}'. Exiting now.")
                 sys.exit(1)
+        else:
+            try:
+                bot_source, lib_module = finder.import_module_from_zulip_bot_registry(args.bot)
+            except finder.DuplicateRegisteredBotName as e:
+                print("ERROR: Found duplicate entries for bot name in zulip bot registry. Exiting now.")
+                sys.exit(1)
+            if lib_module:
+                bot_name = args.bot
 
     if lib_module is None:
         print("ERROR: Could not load bot module. Exiting now.")
@@ -149,7 +159,8 @@ def main() -> None:
             config_file=args.config_file,
             bot_config_file=args.bot_config_file,
             quiet=args.quiet,
-            bot_name=bot_name
+            bot_name=bot_name,
+            bot_source=bot_source,
         )
     except NoBotConfigException:
         print('''

@@ -190,7 +190,8 @@ class LibTest(TestCase):
                                         quiet=True,
                                         config_file=None,
                                         bot_config_file=None,
-                                        bot_name='testbot')
+                                        bot_name='testbot',
+                                        bot_source='bot code location')
 
     def test_upload_file(self):
         client, handler = self._create_client_and_handler_for_file_upload()

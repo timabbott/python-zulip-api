@@ -1,5 +1,6 @@
 import sys
 import os
+import entrypoints
 from os.path import basename, splitext
 from typing import Any, Optional, Text, Tuple
 
@@ -29,6 +30,26 @@ def import_module_by_name(name: Text) -> Any:
         return importlib.import_module(name)
     except ImportError:
         return None
+
+class DuplicateRegisteredBotName(Exception):
+    pass
+
+def import_module_from_zulip_bot_registry(name: str) -> Tuple[str, Any]:
+    registered_bots = entrypoints.get_group_all('zulip_bots.registry')
+    matching_bots = [bot for bot in registered_bots if bot.name == name]
+
+    if len(matching_bots) == 1:  # Unique matching entrypoint
+        bot = matching_bots[0]
+        if bot.distro is not None:
+            return "{}: {}".format(bot.distro.name, bot.distro.version), bot.load()
+        else:
+            print(bot)
+            return "editable package: {}".format(bot.module_name), bot.load()
+
+    if len(matching_bots) > 1:
+        raise DuplicateRegisteredBotName(name)
+
+    return "", None  # no matches in registry
 
 def resolve_bot_path(name: Text) -> Optional[Tuple[Text, Text]]:
     if os.path.isfile(name):

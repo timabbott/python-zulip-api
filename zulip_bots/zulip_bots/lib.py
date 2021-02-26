@@ -310,6 +310,7 @@ def run_message_handler_for_bot(
     config_file: str,
     bot_config_file: str,
     bot_name: str,
+    bot_source: str,
 ) -> Any:
     """
     lib_module is of type Any, since it can contain any bot's
@@ -340,7 +341,7 @@ def run_message_handler_for_bot(
     message_handler = prepare_message_handler(bot_name, restricted_client, lib_module)
 
     if not quiet:
-        print("Running {} Bot:".format(bot_details['name']))
+        print("Running {} Bot (from {}):".format(bot_details['name'], bot_source))
         if bot_details['description'] != "":
             print("\n\t{}".format(bot_details['description']))
         if hasattr(message_handler, 'usage'):

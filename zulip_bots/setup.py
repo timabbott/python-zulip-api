@@ -65,6 +65,7 @@ setuptools_info = dict(
         'html2text',
         'lxml',
         'BeautifulSoup4',
+        'entrypoints',
     ],
 )
 
