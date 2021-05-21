@@ -44,6 +44,8 @@ class TerminalBotHandler:
         self.bot_config_file = bot_config_file
         self.storage = SimpleStorage()
         self.message_server = SimpleMessageServer()
+        self.email = 'boo_server@zulip.com'
+        self.full_name = 'foo'
 
     def identity(self):
         return BotIdentity("bot name", "bot-email@domain")

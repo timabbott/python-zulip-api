@@ -2,6 +2,8 @@
 import os
 import sys
 import argparse
+import re
+from typing import Dict, Tuple
 
 from zulip_bots.finder import import_module_from_source, resolve_bot_path
 from zulip_bots.simple_lib import TerminalBotHandler
@@ -28,6 +30,22 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+def check_which_player(content: str) -> Tuple[str, Dict[str, str]]:
+    # Change to any player by adding `-p <name>` at the end of you command
+    sender = dict(
+        sender_email = 'foo_sender@zulip.com',
+        sender_full_name = 'foo',
+    )
+
+    PATTERN = '^.*?(?:-p (.*))?$'  # move 1 -p test
+    player = re.compile(PATTERN).match(content).group(1)  # match test
+    if player is not None:
+        sender['sender_email'] = '{}_sender@zulip.com'.format(player)
+        sender['sender_full_name'] = '{}'.format(player)
+        content = content[:-(len(player)+4)]  # remove -p + player name from content
+
+    return content, sender
+
 def main():
     args = parse_args()
 
@@ -53,16 +71,21 @@ def main():
     if hasattr(message_handler, 'initialize') and callable(message_handler.initialize):
         message_handler.initialize(bot_handler)
 
-    sender_email = 'foo_sender@zulip.com'
+    message_type = 'stream'
+    subject = 'test'
+    display_recipient = 'foo_sender@zulip.com'
 
     try:
         while True:
             content = input('Enter your message: ')
-
+            content, sender = check_which_player(content)
             message = dict(
                 content=content,
-                sender_email=sender_email,
-                display_recipient=sender_email,
+                sender_email=sender['sender_email'],
+                display_recipient=display_recipient,
+                sender_full_name=sender['sender_full_name'],
+                type=message_type,
+                subject=subject,
             )
             message_handler.handle_message(
                 message=message,
