@@ -42,7 +42,7 @@ class DefineHandler:
 
         # Check for presence of non-letters
         non_letters = set(to_define_lower) - set(string.ascii_lowercase)
-        if len(non_letters):
+        if non_letters:
             return self.SYMBOLS_PRESENT_ERROR_MESSAGE
 
         # No word was entered.

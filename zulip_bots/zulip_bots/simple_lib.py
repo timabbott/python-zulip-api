@@ -6,7 +6,7 @@ from uuid import uuid4
 
 class SimpleStorage:
     def __init__(self):
-        self.data = dict()
+        self.data = {}
 
     def contains(self, key):
         return (key in self.data)
@@ -22,7 +22,7 @@ class MockMessageServer:
     # actually updates messages!
     def __init__(self):
         self.message_id = 0
-        self.messages = dict()
+        self.messages = {}
 
     def send(self, message):
         self.message_id += 1
@@ -110,7 +110,7 @@ class TerminalBotHandler:
     def get_config_info(self, bot_name, optional=False):
         if self.bot_config_file is None:
             if optional:
-                return dict()
+                return {}
             else:
                 print('Please supply --bot-config-file argument.')
                 sys.exit(1)

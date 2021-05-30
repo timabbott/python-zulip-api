@@ -113,7 +113,7 @@ def get_quiz_from_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     letters = ['A', 'B', 'C', 'D']
     random.shuffle(letters)
     correct_letter = letters[0]
-    answers = dict()
+    answers = {}
     answers[correct_letter] = result['correct_answer']
     for i in range(3):
         answers[letters[i+1]] = result['incorrect_answers'][i]

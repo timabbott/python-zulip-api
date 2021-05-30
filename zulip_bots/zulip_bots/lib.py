@@ -133,7 +133,7 @@ class StateHandler:
         self._client = client
         self.marshal = lambda obj: json.dumps(obj)
         self.demarshal = lambda obj: json.loads(obj)
-        self.state_ = dict()  # type: Dict[Text, Any]
+        self.state_ = {}  # type: Dict[Text, Any]
 
     def put(self, key: Text, value: Any) -> None:
         self.state_[key] = self.marshal(value)
@@ -290,7 +290,7 @@ class ExternalBotHandler:
         else:
             if self.bot_config_file is None:
                 if optional:
-                    return dict()
+                    return {}
 
                 # Well written bots should catch this exception
                 # and provide nice error messages with instructions

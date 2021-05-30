@@ -21,7 +21,7 @@ def version() -> str:
 def recur_expand(target_root: Any, dir: Any) -> Generator[Tuple[str, List[str]], None, None]:
     for root, _, files in os.walk(dir):
         paths = [os.path.join(root, f) for f in files]
-        if len(paths):
+        if paths:
             yield os.path.join(target_root, root), paths
 
 # We should be installable with either setuptools or distutils.

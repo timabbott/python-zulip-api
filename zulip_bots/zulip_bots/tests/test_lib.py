@@ -12,7 +12,7 @@ import io
 
 class FakeClient:
     def __init__(self, *args, **kwargs):
-        self.storage = dict()
+        self.storage = {}
 
     def get_profile(self):
         return dict(

@@ -173,7 +173,7 @@ def syntax_help(cmd_name: str) -> str:
 def fs_new() -> Dict[str, Any]:
     fs = {
         '/': directory([]),
-        'user_paths': dict()
+        'user_paths': {}
     }
     return fs
 

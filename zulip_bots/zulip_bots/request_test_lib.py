@@ -51,7 +51,7 @@ def mock_http_conversation(http_data: Dict[str, Any]) -> Any:
         print("ERROR: Failed to find 'request', 'response' or 'response-headers' fields in fixture")
         raise
 
-    meta = http_data.get('meta', dict())
+    meta = http_data.get('meta', {})
     is_raw_response = meta.get('is_raw_response', False)
 
     http_method = http_request.get('method', 'GET')

@@ -648,7 +648,7 @@ def findUpstreamBranchPoint(head = "HEAD"):
     branches = p4BranchesInGit()
     # map from depot-path to branch name
     branchByDepotPath = {}
-    for branch in branches.keys():
+    for branch in branches:
         tip = branches[branch]
         log = extractLogMessageFromGitCommit(tip)
         settings = extractSettingsGitLog(log)
@@ -1352,7 +1352,7 @@ class P4Submit(Command, P4UserMap):
             p4_delete(f)
 
         # Set/clear executable bits
-        for f in filesToChangeExecBit.keys():
+        for f in filesToChangeExecBit:
             mode = filesToChangeExecBit[f]
             setP4ExecBit(f, mode)
 
@@ -2024,7 +2024,7 @@ class P4Sync(Command, P4UserMap):
             else:
                 relPath = self.stripRepoPath(path, self.depotPaths)
 
-            for branch in self.knownBranches.keys():
+            for branch in self.knownBranches:
                 # add a trailing slash so that a commit into qt/4.2foo
                 # doesn't end up in qt/4.2, e.g.
                 if relPath.startswith(branch + "/"):
@@ -2476,7 +2476,7 @@ class P4Sync(Command, P4UserMap):
 
     def getBranchMappingFromGitBranches(self):
         branches = p4BranchesInGit(self.importIntoRemotes)
-        for branch in branches.keys():
+        for branch in branches:
             if branch == "master":
                 branch = "main"
             else:
@@ -2593,7 +2593,7 @@ class P4Sync(Command, P4UserMap):
             try:
                 if self.detectBranches:
                     branches = self.splitFilesIntoBranches(description)
-                    for branch in branches.keys():
+                    for branch in branches:
                         ## HACK  --hwn
                         branchPrefix = self.depotPaths[0] + branch + "/"
                         self.branchPrefixes = [ branchPrefix ]
@@ -2776,7 +2776,7 @@ class P4Sync(Command, P4UserMap):
                 if not self.silent:
                     print("Importing from/into multiple branches")
                 self.detectBranches = True
-                for branch in branches.keys():
+                for branch in branches:
                     self.initialParents[self.refPrefix + branch] = \
                         branches[branch]
 
