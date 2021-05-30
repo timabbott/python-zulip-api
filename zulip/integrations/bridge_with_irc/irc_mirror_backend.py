@@ -1,26 +1,54 @@
+import ssl
+
+import irc.connection
 import irc.bot
-import irc.strings
 from irc.client import Event, ServerConnection, ip_numstr_to_quad
 from irc.client_aio import AioReactor
+from irc import schedule
 import multiprocessing as mp
 from typing import Any, Dict
 
 
+class AioReactorWithScheduler(AioReactor):
+    scheduler_class = schedule.DefaultScheduler
+
+    def __init__(self, *args, **kwargs):
+        super(AioReactorWithScheduler, self).__init__()
+        scheduler = self.scheduler_class()
+        assert isinstance(scheduler, schedule.IScheduler)
+        self.scheduler = scheduler
+
+
 class IRCBot(irc.bot.SingleServerIRCBot):
-    reactor_class = AioReactor
+    reactor_class = AioReactorWithScheduler
 
     def __init__(self, zulip_client: Any, stream: str, topic: str, channel: irc.bot.Channel,
-                 nickname: str, server: str, nickserv_password: str = '', port: int = 6667) -> None:
+                 nickname: str, server: str, nickserv_password: str = '', port: int = 6697,
+                 use_ssl: bool = True, ssl_connection_factory: irc.connection.Factory = None) -> None:
         self.channel = channel  # type: irc.bot.Channel
         self.zulip_client = zulip_client
         self.stream = stream
         self.topic = topic
         self.IRC_DOMAIN = server
         self.nickserv_password = nickserv_password
+
+        # Use SSL for IRC server
+        self.use_ssl = use_ssl
+        if use_ssl:
+            if ssl_connection_factory:
+                self.connection_factory = ssl_connection_factory
+            else:
+                self.connection_factory = irc.connection.AioFactory(ssl=ssl.create_default_context())
+        else:
+            self.connection_factory = irc.connection.AioFactory()
+
+        connect_params = {}
+        connect_params['connect_factory'] = self.connection_factory
+
         # Make sure the bot is subscribed to the stream
         self.check_subscription_or_die()
         # Initialize IRC bot after proper connection to Zulip server has been confirmed.
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        irc.bot.SingleServerIRCBot.__init__(self, [irc.bot.ServerSpec(server, port)], nickname, nickname, **connect_params)
 
     def zulip_sender(self, sender_string: str) -> str:
         nick = sender_string.split("!")[0]
@@ -30,6 +58,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         # Taken from
         # https://github.com/jaraco/irc/blob/master/irc/client_aio.py,
         # in particular the method of AioSimpleIRCClient
+        kwargs['connect_factory'] = self.connection_factory
         self.c = self.reactor.loop.run_until_complete(
             self.connection.connect(*args, **kwargs)
         )

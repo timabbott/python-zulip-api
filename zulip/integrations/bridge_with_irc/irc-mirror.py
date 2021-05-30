@@ -27,9 +27,10 @@ Note that "_zulip" will be automatically appended to the IRC nick provided
 if __name__ == "__main__":
     parser = zulip.add_default_arguments(argparse.ArgumentParser(usage=usage), allow_provisioning=True)
     parser.add_argument('--irc-server', default=None)
-    parser.add_argument('--port', default=6667)
+    parser.add_argument('--port', default=6697)
     parser.add_argument('--nick-prefix', default=None)
     parser.add_argument('--channel', default=None)
+    parser.add_argument('--no-ssl', default=False)
     parser.add_argument('--stream', default="general")
     parser.add_argument('--topic', default="IRC")
     parser.add_argument('--nickserv-pw', default='')
@@ -49,7 +50,11 @@ if __name__ == "__main__":
     if options.irc_server is None or options.nick_prefix is None or options.channel is None:
         parser.error("Missing required argument")
 
+    if options.no_ssl:
+        print("You are not using SSL.")
+
     nickname = options.nick_prefix + "_zulip"
     bot = IRCBot(zulip_client, options.stream, options.topic, options.channel,
-                 nickname, options.irc_server, options.nickserv_pw, options.port)
+                 nickname, options.irc_server, options.nickserv_pw, options.port,
+                 use_ssl=not options.no_ssl)
     bot.start()
