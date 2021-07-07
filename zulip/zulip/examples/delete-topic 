@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+import argparse
+import zulip
+
+
+usage = """delete-topic <stream_id/stream_name, topic_name>
+
+Example: delete-topic 1 "Denmark1" or "Denmark" "Denmark1"
+"""
+
+parser = zulip.add_default_arguments(argparse.ArgumentParser(usage=usage))
+parser.add_argument('stream_id')
+parser.add_argument('topic_name', type=str)
+options = parser.parse_args()
+
+client = zulip.init_from_options(options)
+if (type(options.stream_id) == str):
+    options.stream_id = client.get_stream_id(options.stream_id)
+
+print(client.delete_topic(options.stream_id.get("stream_id"), options.topic_name))

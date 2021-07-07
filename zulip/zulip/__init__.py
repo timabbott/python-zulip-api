@@ -908,6 +908,16 @@ class Client:
             },
         )
 
+    def delete_topic(self, stream_id: int, topic_name: str) -> Dict[str, Any]:
+        '''
+            See examples/delete-topic for example usage.
+        '''
+        return self.call_endpoint(
+            url='/streams/{}/delete_topic'.format(stream_id),
+            method='POST',
+            request={'topic_name': topic_name}
+        )
+
     def get_message_history(self, message_id: int) -> Dict[str, Any]:
         """
         See examples/message-history for example usage.
