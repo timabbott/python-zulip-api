@@ -1,0 +1,21 @@
+{
+    "request": {
+      "api_url": "https://secure.join.me/api/public/v1/auth/token",
+      "method": "POST",
+      "json": {
+        "client_id": "123456789",
+        "client_secret": "2345678901",
+        "redirect_uri": "https://callback.com",
+        "code": "szn3hvd8t9y9kzuepw52kjhe",
+        "grant_type": "authorization_code"
+        }
+       },
+    "response": {
+        "error": "server_error",
+        "error_ticket_id": "d685626822",
+        "error_description": ""
+    },
+    "response-headers": {
+        "Content-Type": "application/json"
+     }
+}

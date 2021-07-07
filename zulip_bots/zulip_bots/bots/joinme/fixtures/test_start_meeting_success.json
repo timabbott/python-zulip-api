@@ -1,0 +1,28 @@
+{
+    "request": {
+      "api_url":
+        "https://api.join.me/v1/meetings/start"
+    ,
+      "method": "POST",
+      "json": {
+        "startWithPersonalUrl": "false"
+        },
+        "headers": {
+            "Content-Type": "application/json",
+            "X-Originating-Ip": "127.0.1.1",
+            "Authorization": "Bearer 1234567890"
+        }
+       },
+    "response": {
+        "presenterLink": "https://secure.join.me/API/Public/StartMeeting.aspx?token=1234567890",
+        "viewerLink": "https://secure.join.me/YourName",
+        "audioConference": {
+          "conferenceId": "{9-digit audio bridge ID}",
+          "conferenceCallNumbersUrl": "https://secure.join.me/api/public/intphone.aspx?conferenceId={9-digit audio bridge ID}",
+          "organizerCode": "{4-digit presenter PIN}"
+        }
+    },
+    "response-headers": {
+        "Content-Type": "application/json"
+     }
+}

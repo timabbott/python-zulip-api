@@ -1,0 +1,22 @@
+{
+    "request": {
+        "api_url": "https://secure.join.me/api/public/v1/auth/oauth2",
+        "params": {
+            "client_id": "123456789",
+            "scope": "user_info scheduler start_meeting",
+            "redirect_uri": "https://callback.com",
+            "state": "radomstringpassedforsecuritystandpoint",
+            "response_type": "code"
+            }
+        },
+    "response": {
+        "StatusCode": 500,
+        "ExitPointId": 101101103500,
+        "Message": "InternalServerError",
+        "ReferenceNumber": "d685621056"
+        },
+    "response-headers": {
+        "status": 500, 
+        "Content-Type": "application/json"
+     }
+}
