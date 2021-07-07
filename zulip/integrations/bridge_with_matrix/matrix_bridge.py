@@ -77,7 +77,7 @@ def matrix_to_zulip(
         """
         content = get_message_content_from_event(event, no_noise)
 
-        zulip_bot_user = "@{}:matrix.org".format(matrix_config["username"])
+        zulip_bot_user = "{}".format(matrix_config["username"])
         # We do this to identify the messages generated from Zulip -> Matrix
         # and we make sure we don't forward it again to the Zulip stream.
         not_from_zulip_bot = event["sender"] != zulip_bot_user
