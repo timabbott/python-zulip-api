@@ -1,0 +1,25 @@
+{
+    "request": {
+        "api_url": "https://api.foursquare.com/v2/venues/search",
+        "method": "GET",
+        "params": {
+            "client_id": "token",
+            "client_secret": "secret",
+            "v": "20180316",
+            "near": "place",
+            "limit": "5"
+        }
+    },
+    "response": {
+        "meta": {
+            "code": 400,
+            "errorType": "failed_geocode",
+            "errorDetail": "Couldn't geocode param near: place",
+            "requestId": "ranosdkndf3rd"
+        },
+        "response": {}
+    },
+    "response-headers": {
+        "status": 400
+    }
+}
