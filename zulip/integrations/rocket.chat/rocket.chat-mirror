@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+
+import os
+import logging
+import time
+import signal
+import traceback
+import multiprocessing as mp
+import datetime
+
+from types import FrameType
+from typing import Any, Callable, Dict
+
+from rocketchat_API.rocketchat import RocketChat
+from rocket_mirror_config import config
+import zulip
+from pprint import pprint
+
+Cfg = Dict[str, Any]
+
+def die(signal: int, frame: FrameType) -> None:
+
+    # We actually want to exit, so run os._exit (so as not to be caught and restarted)
+    os._exit(1)
+
+def zulip_to_rocket_username(full_name: str, site: str) -> str:
+    return "@**{0}**:{1}".format(full_name, site)
+
+def rocket_to_zulip(zulip_client: zulip.Client, cfg: Cfg, res: Dict[str, Any]) -> None:
+    zulip_cfg = cfg["zulip"]
+    rocket_cfg = cfg["rocket"]
+
+    if res['success']:
+        for msg in res['messages']:
+            user = msg['u']
+            content = "**{0}**: {1}".format(user['name'], msg['msg'])
+            pprint(msg['u']['username'])
+
+            is_not_from_bot = user['username'] != rocket_cfg['username']
+            if is_not_from_bot:
+                msg_data = dict(
+                    sender=zulip_client.email,
+                    type="stream",
+                    to=zulip_cfg["stream"],
+                    subject=zulip_cfg["subject"],
+                    content=content)
+                print(msg_data)
+                zulip_client.send_message(msg_data)
+
+def zulip_to_rocket(rocket_client: RocketChat,
+                    cfg: Cfg) -> Callable[[Dict[str, Any]], None]:
+    zulip_cfg = cfg["zulip"]
+    rocket_cfg = cfg["rocket"]
+    site_without_http = zulip_cfg["site"].replace("https://", "").replace("http://", "")
+
+    def _zulip_to_rocket(msg: Dict[str, Any]) -> None:
+        """Zulip -> Matrix
+        """
+        isa_stream = msg["type"] == "stream"
+        not_from_bot = msg["sender_email"] != zulip_cfg["email"]
+        in_the_specified_stream = msg["display_recipient"] == zulip_cfg["stream"]
+        at_the_specified_subject = msg["subject"] == zulip_cfg["subject"]
+        if isa_stream and not_from_bot and in_the_specified_stream and at_the_specified_subject:
+            rocket_username = zulip_to_rocket_username(msg["sender_full_name"], site_without_http)
+            rocket_text = "{0}: {1}".format(rocket_username,
+                                            msg["content"])
+            pprint(rocket_client.chat_post_message(rocket_text, channel=rocket_cfg["channel_id"]).json())
+    return _zulip_to_rocket
+
+def rocket_listener(rocket_client: RocketChat, zulip_client: zulip.Client, cfg: Cfg):
+    interval = 2
+    rocket_cfg = cfg["rocket"]
+    while True:
+        now = datetime.datetime.utcnow()
+        oldest = now - datetime.timedelta(seconds=interval)
+        oldest_str = str(oldest)[:-3] + 'Z'
+        res = rocket_client.channels_history(rocket_cfg['channel_id'],
+                                             oldest=oldest_str).json()
+        rocket_to_zulip(zulip_client, cfg, res)
+        time.sleep(interval)
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, die)
+    logging.basicConfig(level=logging.WARNING)
+
+    # Get config for each clients
+    zulip_config = config["zulip"]
+    rocket_config = config["rocket"]
+
+    # Initiate clients
+    print("Starting rocketchat mirroring bot")
+
+    backoff = zulip.RandomExponentialBackoff(timeout_success_equivalent=300)
+    while backoff.keep_going():
+        try:
+            zulip_client = zulip.Client(email=zulip_config["email"],
+                                        api_key=zulip_config["api_key"],
+                                        site=zulip_config["site"])
+
+            rocket_client = RocketChat(rocket_config['username'],
+                                       rocket_config['password'],
+                                       server_url=rocket_config['server_url'])
+
+            # A bidirectional mirror
+
+            # returns configured function handler
+            zulip_message_handler = zulip_to_rocket(rocket_client, config)
+            p1 = mp.Process(target=zulip_client.call_on_each_message,
+                            args=(zulip_message_handler,))
+
+            p2 = mp.Process(target=rocket_listener,
+                            args=(rocket_client, zulip_client, config))
+
+            print("Starting message handler on Zulip client")
+            p1.start()
+            print("Starting message handler on Rocket.Chat client")
+            p2.start()
+
+            p1.join()
+            p2.join()
+
+        except Exception:
+            traceback.print_exc()
+        backoff.fail()
