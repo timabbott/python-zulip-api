@@ -12,3 +12,4 @@ pytest
 -e git+https://github.com/zulip/zulint@14e3974001bf8442a6a3486125865660f1f2eb68#egg=zulint==1.0.0
 mypy==0.812
 gitlint>=0.13.0
+responses
