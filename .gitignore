@@ -57,3 +57,7 @@ botserverrc
 # Pycharm
 \.DS_Store
 \.idea/
+
+# VS Code
+.vscode/settings.json
+

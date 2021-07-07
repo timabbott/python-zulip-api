@@ -1,0 +1,17 @@
+{
+  "request": {
+    "api_url": "https://bugs.net/rest/bug/123/comment",
+    "method": "POST",
+    "json": {
+      "api_key": "kkk",
+      "comment": "a comment"
+    }
+  },
+  "response": {
+    "id": 124
+  },
+  "response-headers": {
+    "status": 200,
+    "content-type": "application/json; charset=utf-8"
+  }
+}
