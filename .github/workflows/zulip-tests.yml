@@ -60,5 +60,15 @@ jobs:
           zulip-api-py3-venv\Scripts\Activate.ps1
           tools\test-main.ps1
 
+      - if: runner.os == 'Linux'
+        run: |
+          echo "$PWD/zulip-api-py3-venv/bin" >>"$GITHUB_PATH"
+
+      - if: runner.os == 'Windows'
+        run: |
+          Write-Output "$PWD\zulip-api-py3-venv\bin" | Out-File $Env:GITHUB_PATH -Encoding utf8 -Append
+          Write-Output $Env:GITHUB_PATH
+          Get-Content $Env:GITHUB_PATH
+
       - name: Codecov
         uses: codecov/codecov-action@v1.2.1
