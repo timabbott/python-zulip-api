@@ -1,0 +1,134 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Confluence integration for Zulip
+#
+# Copyright © 2014 Zulip, Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+import os
+import sys
+import requests
+import argparse
+from six.moves.configparser import ConfigParser, NoSectionError, NoOptionError
+import zulip
+
+CONFIGFILE = os.path.expanduser("~/.zulip_confluencerc")
+
+INSTRUCTIONS = r"""
+confluence --config-file=~/.zuliprc --frequency 5
+Send Confluence pages to a Zulip stream.
+
+To use this script:
+1. Set up Confluence authentication, as described below
+2. Set up a Zulip bot user and download its `.zuliprc`
+   config file to e.g. `~/.zuliprc`
+3. Subscribe the bot to the stream that will receive Confluence updates
+4. Configure a crontab entry for this script. A sample crontab entry
+that will process spaces and pages every 5 minutes is:
+*/5 * * * * /usr/local/share/zulip/integrations/confluence/confluence [options]
+
+== Setting up Confluence authentication ==
+
+Run this on a personal or trusted machine, because your API key is
+visible to local users through the command line or config file.
+
+Please create a ~/.zulip_confluencerc with the following contents:
+
+[Confluence]
+username =
+token =
+server_base_url =
+
+To obtain an API token from your Atlassian account:
+
+1. Log in to https://id.atlassian.com.
+2. Click API token.
+3. From the dialog that appears, enter a memorable and concise Label for your token and click Create.
+4. Click Copy to clipboard, then paste the token in .zulip_confluencerc:
+If not using Atlassian Cloud, token is the password associated with the username
+
+'server_base_url' is the url via which users access confluence. For example:
+'http://www.foobar.com/confluence' or 'https://your-domain.atlassian.net' in case of atlassian cloud.
+
+"""
+parser = zulip.add_default_arguments(argparse.ArgumentParser("Fetch space and page from Confluence."))
+parser.add_argument('--instructions',
+                    action='store_true',
+                    help='Show instructions for the confluence bot setup and exit'
+                    )
+parser.add_argument('--frequency',
+                    type=int,
+                    help='Frequency (in minutes) at which the script has to be run (this should be the same as configured in the crontab)',
+                    default=5
+                    )
+parser.add_argument('--confluence-cloud',
+                    dest="cloud",
+                    default=False,
+                    action="store_true",
+                    help="Set if confluence deployed on Atlassian cloud"
+                    )
+opts = parser.parse_args()
+if opts.instructions:
+    print(INSTRUCTIONS)
+    sys.exit()
+try:
+    config = ConfigParser()
+    config.read(CONFIGFILE)
+    username = config.get('Confluence', 'username')
+    token = config.get('Confluence', 'token')
+    server_base_url = config.get('Confluence', 'server_base_url')
+except (NoSectionError, NoOptionError):
+    parser.error("Please provide a ~/.zulip_confluencerc")
+
+client = zulip.init_from_options(opts)
+streams = client.list_subscriptions()['subscriptions']
+if not streams:
+    print("Bot is not subscribed to any stream")
+    sys.exit(1)
+
+streams = [i['name'] for i in streams]
+
+if opts.cloud:
+    server_base_url += '/wiki'
+url = '{}/rest/api/content/search?cql=created>=now("-{}m")&expand=history'.format(server_base_url, opts.frequency)
+
+auth = (username, token)
+response = requests.get(url, auth=auth)
+response_json = response.json()
+
+if response_json['results']:
+    for page in response_json['results']:
+        created_by = page['history']['createdBy']['displayName']
+        created_at = page['history']['createdDate'].split('T')
+        content = 'New page [{title}]({url}) created by {created_by} at {time}.'.format(
+            title=page['title'],
+            url='{}{}'.format(server_base_url, page['_links']['webui']),
+            created_by=created_by,
+            time=created_at[1]
+        )
+        for stream in streams:
+            request = {
+                "type": "stream",
+                "to": stream,
+                "subject": page['title'],
+                "content": content
+            }
+            client.send_message(request)
