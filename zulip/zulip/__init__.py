@@ -697,6 +697,7 @@ class Client:
         method: str = "POST",
         request: Optional[Dict[str, Any]] = None,
         longpolling: bool = False,
+        retry_on_rate_limit_error: bool = False,
         files: Optional[List[IO[Any]]] = None,
         timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
@@ -707,14 +708,27 @@ class Client:
             if v is not None:
                 marshalled_request[k] = v
         versioned_url = API_VERSTRING + (url if url is not None else "")
-        return self.do_api_query(
-            marshalled_request,
-            versioned_url,
-            method=method,
-            longpolling=longpolling,
-            files=files,
-            timeout=timeout,
-        )
+
+        while True:
+            result = self.do_api_query(
+                marshalled_request,
+                versioned_url,
+                method=method,
+                longpolling=longpolling,
+                files=files,
+                timeout=timeout,
+            )
+            if (
+                not retry_on_rate_limit_error
+                or result["result"] == "success"
+                or "retry-after" not in result
+            ):
+                break
+            wait_before_retry_secs: float = result["retry-after"]
+            logger.warning("Hit API rate limit, waiting for %f seconds...", wait_before_retry_secs)
+            time.sleep(wait_before_retry_secs)
+
+        return result
 
     def call_on_each_event(
         self,
