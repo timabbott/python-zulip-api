@@ -237,7 +237,7 @@ def write_sample_config(target_path: str, zuliprc: Optional[str]) -> None:
                 OrderedDict(
                     (
                         ("host", "https://matrix.org"),
-                        ("username", "@username@matrix.org"),
+                        ("username", "@username:matrix.org"),
                         ("password", "password"),
                         ("room_id", "#zulip:matrix.org"),
                     )
