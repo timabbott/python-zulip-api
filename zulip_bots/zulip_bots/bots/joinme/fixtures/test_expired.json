@@ -1,0 +1,21 @@
+{
+  "request": {
+    "api_url": "https://secure.join.me/api/public/v1/auth/token",
+    "method": "POST",
+    "data": {
+      "client_id": "1234567890",
+      "client_secret": "2345678901",
+      "redirect_uri": "https://callback.com",
+      "code": "szn3hvd8t9y9kzuepw52kjhe",
+      "grant_type": "authorization_code"
+      }
+     },
+  "response": {
+      "StatusCode": 400,
+      "error": "invalid_authorization_code"
+      },
+  "response-headers": {
+      "Content-Type": "application/json",
+      "error": "invalid_authorization_code"
+   }
+}

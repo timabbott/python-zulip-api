@@ -1,0 +1,19 @@
+{
+  "request": {
+    "api_url": "https://secure.join.me/api/public/v1/auth/oauth2",
+    "params": {
+      "client_id": "1234567890",
+      "scope": "user_info scheduler start_meeting",
+      "redirect_uri": "https://callback.com",
+      "state": "ZISSHUDBUNIq",
+      "response_type": "code"
+      }
+     },
+  "response": {
+      "StatusCode": 200,
+      "url": "https://login.com"
+      },
+  "response-headers": {
+    "Content-Type": "application/json"
+   }
+}
